@@ -16,7 +16,8 @@ class Card
 
 	@@default_suits = ['heart','club','diamond','spade']
 	@@default_values = [2,3,4,5,6,7,8,9,10,'jack','king','queen','ace']
-	@@card_value_lookup = {2 => 2, 3 => 3, 4 => 4, 5 => 5, 6 => 6, 7 => 7, 8 => 8, 9 => 9, 10 => 10,  'jack'=>10,  'queen'=> 10,  'king'=> 10,  'ace'=> [10,1]}
+	# @@card_value_lookup = {2 => 2, 3 => 3, 4 => 4, 5 => 5, 6 => 6, 7 => 7, 8 => 8, 9 => 9, 10 => 10,  'jack'=>10,  'queen'=> 10,  'king'=> 10,  'ace'=> [11,1]}
+	@@card_value_lookup = {2 => 2, 3 => 3, 4 => 4, 5 => 5, 6 => 6, 7 => 7, 8 => 8, 9 => 9, 10 => 10,  'jack'=>10,  'queen'=> 10,  'king'=> 10,  'ace'=> 1}
 
 
 
@@ -113,6 +114,7 @@ class Game
 			@score = @score+Card.card_value_lookup.fetch(card.value)
 		end
 		@score
+		#if there is an array, how do we present a choice of scores?
 	end
 
 	def opening_deal
@@ -140,33 +142,64 @@ end
 class AI
 
 	def initialize
-
+		aigame = Game.new
+		aigame.opening_deal
+		aigame.show_hand
+		puts "this is the opening hand with a score of #{aigame.current_score}"
+		while true
+			if aigame.current_score <= 17
+				puts "lets twist"
+				aigame.twist
+				aigame.show_hand
+			elsif  (aigame.current_score >= 18) && (aigame.current_score < $new_game.current_score)
+				aigame.twist
+				if aigame.current_score > 21
+					puts 'bust AI'
+					break
+				end
+			elsif (aigame.current_score <=21) && (aigame.current_score > $new_game.current_score)
+				puts "AI wins"
+				break	
+			elsif aigame.current_score == 21
+				puts "The house score is#{aigame.current_score}"
+				if aigame.current_score > $new_game.current_score
+					puts "AI Wins"
+					break
+				end
+				break
+			elsif aigame.current_score >= 22
+				puts "bust, player wins"
+				break
+			end
+		end
 	end
 
 end
 
 def newgame
 	puts 'new game'
-	new_game = Game.new
-	new_game.opening_deal
-	new_game.show_hand
+	$new_game = Game.new
+	$new_game.opening_deal
+	$new_game.show_hand
 	while true
-		puts "Your score is #{new_game.current_score}"
+		puts "Your score is #{$new_game.current_score}"
 		puts 'Would you like another card, Y or N ?'
-		input = gets.chomp
+		input = gets.chomp.upcase
 		if input == 'Y'
-			new_game.twist
-			new_game.show_hand
-			puts "your score is #{new_game.current_score}"
+			$new_game.twist
+			$new_game.show_hand
+			puts "your score is #{$new_game.current_score}"
 		elsif input == 'N'
-			puts "your score is #{new_game.current_score}"
+			puts "your score is #{$new_game.current_score}"
 			#start computer AI here
+			AI.new
+			break
 		end
-		if new_game.current_score > 21
-				new_game.bust
+		if $new_game.current_score > 21
+				$new_game.bust
 				break
 
-		elsif new_game.current_score == 21 
+		elsif $new_game.current_score == 21 
 			puts '21 Reached !!!!'
 			break
 		end
